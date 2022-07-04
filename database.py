@@ -35,20 +35,30 @@ class database(dict):
         self.__dict__ = self
         self.dataBasePath = dataBasePath
 
-        if self.loadDataBase(self.dataBasePath) == False:
-            self.createNewDatabase(self.dataBasePath)
+        self.loadDataBase(self.dataBasePath)
 
 
-    def loadDataBase(self, path) -> bool:
+    def loadDataBase(self, path):
         try:
             file = open(path + "database.json", "r")
         except FileNotFoundError:
             print("FILE NOT FOUND ERROR")
             self.createNewDatabase(self.dataBasePath)
-        data = file.read()
+            pass
+        data = json.load(file)
         file.close()
 
-        return True
+        for object in data:
+            try:
+                self.__dict__[data[object]["hash"]] = stream(
+                    data[object]["filepath"],
+                    data[object]["dateArchived"],
+                    data[object]["link"],
+                    data[object]["source"],
+                    data[object]["hash"]
+                )
+            except Exception as e:
+                print(e)
 
     def createNewDatabase(self, path):
         file = open(path + "database.json", "x")
@@ -71,6 +81,6 @@ if __name__ == "__main__":
     testStream = stream("~/Projects/video.mp4", "070222", "link", 1)
     print(testStream.hash)
     db = database("/home/faveing/Documents/gits/StreamArchiver/")
-    db.addEntry(testStream)
+    #db.addEntry(testStream)
     print(db)
     db.saveEntry()
