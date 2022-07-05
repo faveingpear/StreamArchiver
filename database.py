@@ -1,9 +1,6 @@
 import base64
 from datetime import date
 from encodings import utf_8
-from this import s
-
-from sympy import false, true
 
 import json
 
@@ -44,7 +41,7 @@ class database(dict):
         except FileNotFoundError:
             print("FILE NOT FOUND ERROR")
             self.createNewDatabase(self.dataBasePath)
-            pass
+            return
         data = json.load(file)
         file.close()
 
@@ -69,7 +66,7 @@ class database(dict):
         print("Added Entry " + str(streamObject.hash) )
         self.__dict__[streamObject.hash] = streamObject
 
-    def saveEntry(self, path=None):
+    def saveDatabase(self, path=None):
 
         if path == None:
             with open(self.dataBasePath + "database.json", "w") as outfile:
@@ -80,7 +77,7 @@ class database(dict):
 if __name__ == "__main__":
     testStream = stream("~/Projects/video.mp4", "070222", "link", 1)
     print(testStream.hash)
-    db = database("/home/faveing/Documents/gits/StreamArchiver/")
+    db = database("/home/mpearsonindyx/Projects/StreamArchiver/")
     #db.addEntry(testStream)
     print(db)
-    db.saveEntry()
+    db.saveDatabase()
