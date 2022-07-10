@@ -2,12 +2,36 @@ from yt_dlp import YoutubeDL
 from database import database
 from database import stream
 
-class Dowloader():
+from logger import MyLogger
 
-    def __init__(self) -> None:
-        pass
+class Downloader():
 
-    def download(self, yt_opts, link):
+    def __init__(self, logger) -> None:
+        self.logger = logger
+
+    def download(self, link):
+
+        self.logger.info("[downloader] Downloading " + link)
+
+        yt_opts = {
+            'logger': self.logger
+        }
+
         with YoutubeDL(yt_opts) as ydl:
-            ydl.download(link)
+            try:
+                ydl.download(link)
+            except Exception as e:
+                self.logger.error("[downloader] ytdl error " + str(e))
+                pass
+
+            self.logger.info("[downloader] finished downloading " + link)
+
+if __name__ == "__main__":
+    print("Test")
+    logger = MyLogger(logFile="logging.log", name="downloader")
+
+    download = Downloader(logger=logger)
+    download.download("https://www.youtube.com/watch?v=SLBfEwPHS6Y")
+    
+
 
