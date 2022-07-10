@@ -1,88 +1,85 @@
+from asyncio.log import logger
 import base64
 from datetime import date
 from encodings import utf_8
 
+from json import JSONEncoder
 import json
 
-import logging
+from logger import MyLogger
 
-class stream(dict):
+# class MyEncoder(JSONEncoder):
+#     def default(self, obj):
+#         return obj.__iter__  
 
-    def __init__(self, filepath, dateArchived, link, source, hash = None) -> None:
-        super(stream, self).__init__()
-        self.__dict__ = self
-        
-        self.__dict__["filepath"] = filepath
-        self.__dict__["dateArchived"] = dateArchived
-        self.__dict__["link"] = link
-        self.__dict__["source"] = source
+class stream():
+
+    def __init__(self, filepath, dateArchived, link, source, logger, hash = None) -> None:
+
+        self.filepath = filepath
+        self.dateArchived = dateArchived
+        self.link = link
+        self.source = source
+        self.logger = logger
 
         if hash == None:
-            self.__dict__["hash"] = str(self.genHash(link))
+            self.hash = str(self.genHash(link))
         else:
-            self.__dict__["hash"] = hash
+            self.hash = hash
 
     def genHash(self, link):
         return base64.b64encode(bytes(link, "utf_8"))
 
-class database(dict):
+    def __iter__(self):
+        yield from {
+            "fliepath": self.filepath,
+            "dateArchived": self.dateArchived,
+            "link": self.link,
+            "source": self.source,
+            "hash": self.hash
+        }.items()
 
-    dataBasePath: str
+    def __str__(self):
+        return json.dumps(dict(self), ensure_ascii=False)
 
-    def __init__(self, dataBasePath, logger):
-        super(database, self).__init__()
-        self.__dict__ = self
+    def __repr__(self):
+        return self.__str__()
+
+class database():
+
+    def __init__(self, dataBasePath, logger) -> None:
+        self.logger = logger
         self.dataBasePath = dataBasePath
-        #self.logger = logger
 
-        self.loadDataBase(self.dataBasePath)
+        self.logger.info("[database] database is being initialized")
 
-        #self.logger.info("Database function initialized")
-
-
-    def loadDataBase(self, path):
-        try:
-            file = open(path + "database.json", "r")
-        except FileNotFoundError:
-            print("FILE NOT FOUND ERROR")
-            self.createNewDatabase(self.dataBasePath)
-            return
-        data = json.load(file)
-        file.close()
-
-        for object in data:
-            try:
-                self.__dict__[data[object]["hash"]] = stream(
-                    data[object]["filepath"],
-                    data[object]["dateArchived"],
-                    data[object]["link"],
-                    data[object]["source"],
-                    data[object]["hash"]
-                )
-            except Exception as e:
-                print(e)
-
-    def createNewDatabase(self, path):
-        file = open(path + "database.json", "x")
-        file.write("")
-        file.close()
-
+        self.db = {}
+        
     def addEntry(self, streamObject):
-        print("Added Entry " + str(streamObject.hash) )
-        self.__dict__[streamObject.hash] = streamObject
+        self.logger.info("[database] Added Entry " + str(streamObject.hash))
+        self.db[streamObject.hash] = streamObject
 
-    def saveDatabase(self, path=None):
+    def __iter__(self):
+        yield from {
+            "dataBasePath": self.dataBasePath,
+            "database": self.db
+        }.items()
 
-        if path == None:
-            with open(self.dataBasePath + "database.json", "w") as outfile:
-                json.dump(self.__dict__, outfile)
-        else:
-            pass
+    def __str__(self):
+        return json.dumps(dict(self), ensure_ascii=False)
+
+    def __repr__(self):
+        return self.__str__()
 
 if __name__ == "__main__":
-    testStream = stream("~/Projects/video.mp4", "070222", "link", 1)
-    print(testStream.hash)
-    db = database("/home/mpearsonindyx/Projects/StreamArchiver/", logging)
-    #db.addEntry(testStream)
-    print(db)
-    db.saveDatabase()
+    #testStream = stream("~/Projects/video.mp4", "070222", "link", 1)
+
+    databaseLogger = MyLogger(logFile="logging.log", name="database")
+
+    db = database(dataBasePath="database.json",logger=databaseLogger)
+
+    testStream = stream(filepath="~/test", dateArchived="06/10/2022", link="Https://blah", source=2, logger=logger)
+    db.addEntry(testStream)
+    #print(db)
+    print(testStream)
+    print(json.dumps(testStream, cls=MyEncoder))
