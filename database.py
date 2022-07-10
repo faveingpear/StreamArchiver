@@ -4,6 +4,8 @@ from encodings import utf_8
 
 import json
 
+import logging
+
 class stream(dict):
 
     def __init__(self, filepath, dateArchived, link, source, hash = None) -> None:
@@ -27,12 +29,15 @@ class database(dict):
 
     dataBasePath: str
 
-    def __init__(self, dataBasePath):
+    def __init__(self, dataBasePath, logger):
         super(database, self).__init__()
         self.__dict__ = self
         self.dataBasePath = dataBasePath
+        #self.logger = logger
 
         self.loadDataBase(self.dataBasePath)
+
+        #self.logger.info("Database function initialized")
 
 
     def loadDataBase(self, path):
@@ -77,7 +82,7 @@ class database(dict):
 if __name__ == "__main__":
     testStream = stream("~/Projects/video.mp4", "070222", "link", 1)
     print(testStream.hash)
-    db = database("/home/mpearsonindyx/Projects/StreamArchiver/")
+    db = database("/home/mpearsonindyx/Projects/StreamArchiver/", logging)
     #db.addEntry(testStream)
     print(db)
     db.saveDatabase()
