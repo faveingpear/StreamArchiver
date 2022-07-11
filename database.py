@@ -8,9 +8,9 @@ import json
 
 from logger import MyLogger
 
-# class MyEncoder(JSONEncoder):
-#     def default(self, obj):
-#         return obj.__iter__  
+class MyEncoder(JSONEncoder):
+    def default(self, obj):
+        return obj.to_json()
 
 class stream():
 
@@ -45,6 +45,15 @@ class stream():
     def __repr__(self):
         return self.__str__()
 
+    def to_json(self):
+        jsonData = {
+            "fliepath": self.filepath,
+            "dateArchived": self.dateArchived,
+            "link": self.link,
+            "source": self.source,
+            "hash": self.hash
+        }
+        return json.dumps(jsonData)
 class database():
 
     def __init__(self, dataBasePath, logger) -> None:
@@ -59,20 +68,36 @@ class database():
         self.logger.info("[database] Added Entry " + str(streamObject.hash))
         self.db[streamObject.hash] = streamObject
 
-    def __iter__(self):
-        yield from {
+    # def __iter__(self):
+    #     yield from {
+    #         "dataBasePath": self.dataBasePath,
+    #         "database": self.db
+    #     }.items()
+
+    # def __str__(self):
+    #     return json.dumps(dict(self), ensure_ascii=False)
+
+    # def __repr__(self):
+    #     return self.__str__()
+    
+    def to_json(self):
+
+        streamDict = {}
+
+        for stream in self.db:
+            streamDict[stream] = self.db[stream].to_json()
+
+        jsonData = {
             "dataBasePath": self.dataBasePath,
-            "database": self.db
-        }.items()
+            "database": streamDict
+        }
+        return jsonData
+    
+    def saveDatabase(self):
 
-    def __str__(self):
-        return json.dumps(dict(self), ensure_ascii=False)
-
-    def __repr__(self):
-        return self.__str__()
+        self.logger.info(json.dumps(db, cls=MyEncoder))
 
 if __name__ == "__main__":
-    #testStream = stream("~/Projects/video.mp4", "070222", "link", 1)
 
     databaseLogger = MyLogger(logFile="logging.log", name="database")
 
@@ -80,6 +105,6 @@ if __name__ == "__main__":
 
     testStream = stream(filepath="~/test", dateArchived="06/10/2022", link="Https://blah", source=2, logger=logger)
     db.addEntry(testStream)
-    #print(db)
-    print(testStream)
-    print(json.dumps(testStream, cls=MyEncoder))
+    db.saveDatabase()
+
+    #print(json.dumps(db, cls=MyEncoder))
