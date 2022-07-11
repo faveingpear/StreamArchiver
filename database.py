@@ -1,14 +1,7 @@
-from asyncio.log import logger
-import base64
-from datetime import date
-from encodings import utf_8
 
+import base64
 from json import JSONEncoder
 import json
-from matplotlib.font_manager import json_dump
-
-from numpy import source
-from sympy import false, true
 
 from logger import MyLogger
 
@@ -135,7 +128,7 @@ class database():
         except Exception as e:
             self.logger.error("[database] Could not load database")
             self.logger.error(e)
-            return false
+            return False
 
         ## TODO
         ## Fix case where database file is present but no json data
@@ -158,7 +151,7 @@ class database():
             )
             self.logger.info("[database] Added stream " + data["database"][object]["hash"] + " to the database")
 
-        return true
+        return True
 
 if __name__ == "__main__":
     databaseLogger = MyLogger(logFile="logging.log", name="database")
