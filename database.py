@@ -5,6 +5,10 @@ from encodings import utf_8
 
 from json import JSONEncoder
 import json
+from matplotlib.font_manager import json_dump
+
+from numpy import source
+from sympy import false, true
 
 from logger import MyLogger
 
@@ -27,14 +31,14 @@ class stream():
         else:
             self.hash = hash
 
-        self.logger.info("[database] created stream object " + self.hash)
+        self.logger.info("[stream] created stream object " + self.hash)
 
     def genHash(self, link):
         return base64.b64encode(bytes(link, "utf_8"))
 
     def __iter__(self):
         yield from {
-            "fliepath": self.filepath,
+            "filepath": self.filepath,
             "dateArchived": self.dateArchived,
             "link": self.link,
             "source": self.source,
@@ -49,26 +53,38 @@ class stream():
 
     def to_json(self):
         jsonData = {
-            "fliepath": self.filepath,
+            "filepath": self.filepath,
             "dateArchived": self.dateArchived,
             "link": self.link,
             "source": self.source,
             "hash": self.hash
         }
-        return json.dumps(jsonData)
+        return jsonData
 class database():
 
-    def __init__(self, dataBasePath, logger) -> None:
+    def __init__(self, logger, dataBasePath=None) -> None:
         self.logger = logger
-        self.dataBasePath = dataBasePath
+        self.logger.info("[database] database is initialized")
 
         self.db = {}
 
-        self.logger.info("[database] database is initialized")
+        if dataBasePath == None:
+            self.dataBasePath = "database.json"
+        else:
+            self.dataBasePath = dataBasePath
+
+        self.db["dataBasePath"] = self.dataBasePath
+        self.db["database"] = {}
+
+        if self.loadDatabase() == True:
+            pass
+        else:
+            self.logger.info("[database] No database file found, creating new database file at " + self.dataBasePath)
+            self.createDataBaseFile()
         
     def addEntry(self, streamObject):
         self.logger.info("[database] Added Entry " + str(streamObject.hash))
-        self.db[streamObject.hash] = streamObject
+        self.db["database"][streamObject.hash] = streamObject
 
     # def __iter__(self):
     #     yield from {
@@ -86,27 +102,74 @@ class database():
 
         streamDict = {}
 
-        for stream in self.db:
-            streamDict[stream] = self.db[stream].to_json()
+        #print(self.db)
+
+        for stream in self.db["database"]:
+            streamDict[stream] = self.db["database"][stream].to_json()
 
         jsonData = {
             "dataBasePath": self.dataBasePath,
             "database": streamDict
         }
         return jsonData
+
+    def createDataBaseFile(self):
+        open(self.dataBasePath, "x")
     
     def saveDatabase(self):
 
-        self.logger.info(json.dumps(db, cls=MyEncoder))
+        self.logger.info("[database] Saveing database")
+
+        file = open(self.dataBasePath, "w")
+        file.write(json.dumps(self, cls=MyEncoder))
+        file.close()
+
+        self.logger.info("[database] Database saved to " + self.dataBasePath)
+
+    def loadDatabase(self) -> bool:
+
+        self.logger.info("[database] loading database from " + self.dataBasePath)
+
+        try:
+            file = open(self.dataBasePath, "r")
+        except Exception as e:
+            self.logger.error("[database] Could not load database")
+            self.logger.error(e)
+            return false
+
+        ## TODO
+        ## Fix case where database file is present from no json data
+        data = json.load(file)
+        file.close()
+
+        self.db["dataBasePath"] = data["dataBasePath"]
+        self.db["database"] = {}
+
+        for object in data["database"]:
+            self.logger.info("[database] loading stream " + object)
+            #print(type(data["database"][object]))
+            self.db["database"][object] = stream(
+                dateArchived=data["database"][object]["dateArchived"],
+                link=data["database"][object]["link"],
+                source=data["database"][object]["source"],
+                filepath=data["database"][object]["filepath"],
+                hash=data["database"][object]["hash"],
+                logger=self.logger
+            )
+            self.logger.info("[database] Added stream " + data["database"][object]["hash"] + " to the database")
+
+        return true
 
 if __name__ == "__main__":
-
     databaseLogger = MyLogger(logFile="logging.log", name="database")
+    db = database(dataBasePath="/home/faveing/Documents/gits/StreamArchiver/database.json",logger=databaseLogger)
 
-    db = database(dataBasePath="database.json",logger=databaseLogger)
-
-    testStream = stream(filepath="~/test", dateArchived="06/10/2022", link="Https://blah", source=2, logger=logger)
-    db.addEntry(testStream)
+    #testStream = stream(filepath="/test", dateArchived="06/10/2022", link="Https://blah", source=2, logger=logger)
+    #testStream2 = stream(filepath="/test", dateArchived="06/10/2022", link="fdsaf://blah", source=2, logger=logger)
+    #db.addEntry(testStream)
+    #.addEntry(testStream2)
+    print(db.to_json())
     db.saveDatabase()
+    #db.loadDatabase()
 
     #print(json.dumps(db, cls=MyEncoder))
