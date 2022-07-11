@@ -27,6 +27,8 @@ class stream():
         else:
             self.hash = hash
 
+        self.logger.info("[database] created stream object " + self.hash)
+
     def genHash(self, link):
         return base64.b64encode(bytes(link, "utf_8"))
 
@@ -60,9 +62,9 @@ class database():
         self.logger = logger
         self.dataBasePath = dataBasePath
 
-        self.logger.info("[database] database is being initialized")
-
         self.db = {}
+
+        self.logger.info("[database] database is initialized")
         
     def addEntry(self, streamObject):
         self.logger.info("[database] Added Entry " + str(streamObject.hash))
