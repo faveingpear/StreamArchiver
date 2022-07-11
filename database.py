@@ -138,7 +138,7 @@ class database():
             return false
 
         ## TODO
-        ## Fix case where database file is present from no json data
+        ## Fix case where database file is present but no json data
         data = json.load(file)
         file.close()
 
