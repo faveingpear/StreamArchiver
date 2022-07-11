@@ -1,6 +1,4 @@
 from yt_dlp import YoutubeDL
-from database import database
-from database import stream
 
 from logger import MyLogger
 
