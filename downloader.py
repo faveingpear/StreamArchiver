@@ -7,13 +7,11 @@ class Downloader():
     def __init__(self, logger) -> None:
         self.logger = logger
 
-    def download(self, link):
+    def download(self, link, yt_opts={}):
 
         self.logger.info("[downloader] Downloading " + link)
 
-        yt_opts = {
-            'logger': self.logger
-        }
+        yt_opts['logger'] = self.logger
 
         with YoutubeDL(yt_opts) as ydl:
             try:
