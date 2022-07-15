@@ -5,16 +5,21 @@ from logger import MyLogger
 
 from downloader import Downloader
 
+import sys
+
 DATABASEPATH = "/home/faveing/Documents/gits/StreamArchiver/database.json"
 
-yt_opts = {
+# yt_opts = {
     
-}
+# }
 
 downloadLogger = MyLogger("logging.log", "downloader")
 databaseLogger = MyLogger("logging.log", "database")
+streamArchiverLogger= MyLogger("logging.log", "streamArchiver")
 
 db = database(logger=databaseLogger, dataBasePath=DATABASEPATH)
-downloader = Downloader(logger=downloadLogger)
 
-downloader.download(link="https://www.youtube.com/watch?v=IpzafkH7LEc")
+if __name__ == "__main__":
+    print(f"Arguments count: {len(sys.argv)}")
+    for i, arg in enumerate(sys.argv):
+        
